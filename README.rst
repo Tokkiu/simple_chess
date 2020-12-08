@@ -55,6 +55,17 @@ Contributing
    virtualenv .
    make
 
+
+Releasing
+------------
+
+::
+
+   git clone git@github.com:tokkiu/simple_chess.git
+   cd simple_chess
+   pip install wheel
+   python setup.py sdist bdist_wheel
+
 Credits
 -------
 
