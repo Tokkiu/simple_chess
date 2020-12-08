@@ -70,6 +70,7 @@ Credits
 -------
 
 * Ary <mrgao.ary@gmail.com>
+* Sarah <shenruhui@outlook.com>
 
 Add your name and email, detail in: https://github.com/tokkiu/simple_chess/graphs/contributors
 
