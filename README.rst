@@ -22,7 +22,7 @@ Data Structure
 --------
 Use 8*8 matrix to represent the state of the chessborad, e.g.,
 ::
-   current state: [[ 1.  1.  0.  0. -1. -1. -1. -1.]
+ [[ 1.  1.  0.  0. -1. -1. -1. -1.]
  [ 1.  1.  1. -1.  1.  1. -1.  1.]
  [-1. -1.  1. -1.  1.  1.  1. -1.]
  [-1.  1. -1.  0.  1. -1.  1. -1.]
