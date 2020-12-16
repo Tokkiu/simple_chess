@@ -31,7 +31,7 @@ Use 8*8 matrix to represent the state of the chessborad, e.g.,
  [ 0.  1. -1. -1.  1.  0.  0. -1.]
  [ 1.  0.  1. -1.  1. -1.  1.  0.]]
 
-AI is 1, Human is -1, 0 is the positions haven't been placed.
+The first hand is 1, and the second hand is -1, 0 is the positions haven't been placed.
 
 Features
 --------
