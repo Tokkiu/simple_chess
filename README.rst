@@ -21,21 +21,14 @@ A simple implementation for simple chess
 Data Structure
 --------
 Use 8*8 matrix to represent the state of the chessborad, e.g.,
-current state: 
-[[ 1.  1.  0.  0. -1. -1. -1. -1.]
-
+::
+   current state: [[ 1.  1.  0.  0. -1. -1. -1. -1.]
  [ 1.  1.  1. -1.  1.  1. -1.  1.]
- 
  [-1. -1.  1. -1.  1.  1.  1. -1.]
- 
  [-1.  1. -1.  0.  1. -1.  1. -1.]
- 
  [-1.  1. -1.  1.  1.  0.  1. -1.]
- 
  [-1.  1. -1.  1. -1. -1. -1.  1.]
- 
  [ 0.  1. -1. -1.  1.  0.  0. -1.]
- 
  [ 1.  0.  1. -1.  1. -1.  1.  0.]]
 
 AI is 1, Human is -1, 0 is the positions haven't been placed.
