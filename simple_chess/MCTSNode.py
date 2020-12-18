@@ -3,11 +3,16 @@ from copy import deepcopy
 import numpy as np
 from Board import Board
 
+from nn_player import load_model
+from nn_player import Board as NBoard
+
+model = load_model('../model/best_policy_8_8_5.model')
+
 class MCTSNode(object):
     '''
     MCTSNode in the MCT
     '''
-    
+
     def __init__(self, board, player, parent, position):
         self.board = board
         self.player = player
@@ -26,7 +31,7 @@ class MCTSNode(object):
 
         self._untried_actions = None
         self._untried_far_actions = []
-    
+
     # Should be replaced by NN
     @property
     def untried_actions(self):
@@ -42,7 +47,7 @@ class MCTSNode(object):
             # self._untried_actions = available_children
 
         return self._untried_actions
-        
+
 
     def fully_expanded(self):
         '''
@@ -63,7 +68,7 @@ class MCTSNode(object):
         best_child = max(children_scores, key=lambda x: x[1])[0]
         return best_child
 
-    
+
     def expand_child(self):
         '''
         If the node is not a fully expanded node, add a child.
@@ -72,7 +77,34 @@ class MCTSNode(object):
         '''
         if len(self.children) < self.max_expend_num:
             next_state = np.copy(self.board.state)
-            move_pos = self.untried_actions.pop(0)
+            # move_pos = self.untried_actions.pop(0)
+
+            me = 1
+            nboard = NBoard()
+            nboard.init_board(0)
+            nboard.current_player = 1 if self.player == me else 2
+            for i in range(8):
+                for j in range(8):
+                    c = next_state[i][j]
+                    x, y = 7 - i, j
+                    move = nboard.location_to_move([x, y])
+                    if c != 0:
+                        nboard.availables.remove(move)
+                        if c == me:
+                            nboard.states[move] = 1
+                        else:
+                            nboard.states[move] = 2
+            if self.parent:
+                last_pos = self.parent.position
+                nboard.last_move = nboard.location_to_move([7-last_pos[0], last_pos[1]])
+            max_p, max_m = 0, 0
+            for move, prob in model(nboard)[0]:
+                if prob > max_p:
+                    max_p = prob
+                    max_m = move
+
+            move_pos = nboard.move_to_location(max_m)
+            move_pos[0] = 7-move_pos[0]
 
             # Create board instance and take the move
             state = Board(next_state, self.board.n_in_row)
@@ -84,7 +116,7 @@ class MCTSNode(object):
             return new_child
         else:
             return None
-    
+
 
     def find_naive_pattern(self):
         '''
@@ -110,7 +142,7 @@ class MCTSNode(object):
             if self.board.state[boundary_gap+i][boundary_gap+j] == 0]
         sb_len = len(small_board_position)
         return random.sample(small_board_position, int(sb_len/2))
-        
+
 
     def find_nearest_position_first(self):
         '''

@@ -203,14 +203,18 @@ def move_to_state(x=0, y=0, width=8):
 def state_to_move(state=0, width=8):
     h = state // width
     w = state % width
-    return (h, w)
+    return h, w
 
 
-def build_nn_player():
-    policy_param = pickle.load(open('./model/best_policy_8_8_5.model', 'rb', ), encoding='bytes')
+def load_model(model_path: str = './model/best_policy_8_8_5.model'):
+    policy_param = pickle.load(open(model_path, 'rb', ), encoding='bytes')
     width, height = 8, 8
     best_policy = PolicyValueNetNumpy(width, height, policy_param)
-    mcts_player = MCTSPlayer(best_policy.policy_value_fn,
+    return best_policy.policy_value_fn
+
+def build_nn_player():
+    best_policy = load_model()
+    mcts_player = MCTSPlayer(best_policy,
                              c_puct=5,
                              n_playout=400)  # set larger n_playout for better performance
 
@@ -218,14 +222,22 @@ def build_nn_player():
 
 
 if __name__ == '__main__':
-    mcts_player = build_nn_player()
+    model = load_model()
+    # mcts_player = build_nn_player()
 
     board = Board()
     board.init_board(0)
 
     # my first move
     board.do_move(move_to_state(4, 5))
+    board.do_move(move_to_state(5, 6))
+    board.do_move(move_to_state(1, 0))
+    board.do_move(move_to_state(2, 1))
     graphic(board)
+
+    for action, prob in model(board)[0]:
+        print(action, prob)
+
 
     # AI's next move
     action = mcts_player.get_action(board)
