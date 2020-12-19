@@ -3,7 +3,6 @@ import numpy as np
 import time
 from MCTS import MCTSAgent
 from numba import jit
-@jit(nopython=True)
 
 
 def draw_board(screen):
@@ -62,6 +61,7 @@ def render(screen, mat):
     pygame.display.update()
 
 
+@jit(nopython=True)
 def check_for_done(mat):
     """
     please write your own code testing if the game is over. Return a boolean variable done. If one of the players wins
@@ -127,7 +127,7 @@ def update_by_pc(mat, row, col):
     if len(availables[0])==1:
         mat[availables[0][0]][availables[1][0]] = -1
     else:
-        mcts = MCTSAgent(mat, 3, 10000)
+        mcts = MCTSAgent(mat, 10, 10000)
         position = mcts.choose_position(-1, (row,col))
         mat[position[0]][position[1]] = -1
 
@@ -139,7 +139,7 @@ def main():
     M = 8
 
     pygame.init()
-    screen = pygame.display.set_mode((640, 640))
+    screen = pygame.display.set_mode((640, 640)) 
     pygame.display.set_caption('Five-in-a-Row')
     done = False
     mat = np.zeros((M, M))

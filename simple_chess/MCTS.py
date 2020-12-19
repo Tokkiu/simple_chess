@@ -8,7 +8,7 @@ from MCTSNode import MCTSNode
 from Board import Board
 
 def pprint_tree(node, file=None, _prefix="", _last=True, level = 0, max_depth=1):
-    print(_prefix, "`- " if _last else "|- ", {"Win Num":node.win_times, "Visit Num":node.visited_times,  "Pos":node.position}, sep="", file=file)
+    # print(_prefix, "`- " if _last else "|- ", {"Win Num":node.win_times, "Visit Num":node.visited_times,  "Pos":node.position}, sep="", file=file)
     _prefix += "   " if _last else "|  "
     child_count = len(node.children)
     if level >= max_depth:
@@ -101,7 +101,7 @@ class MCTSAgent(object):
 
         while not is_over:
             player = -1*player
-            position = self.rollout_policy(current_state)
+            position = self.rollout_policy_2(current_state,player)
             #print(position,type(position))
             current_state.move(position, player)
             is_over, winner = current_state.check_game_result()
@@ -121,7 +121,69 @@ class MCTSAgent(object):
         Random positions.
         '''
         return random.choice(board.availables)
+    
+    
+    def evaluate_window(self,window, piece):
+        score = 0
+        opp_piece = piece * -1
+        if window.count(piece) == 5:
+            score += 10*4
+        elif window.count(piece) == 4 and window.count(0) == 1:
+            score += 10*4
+        elif window.count(piece) == 3 and window.count(0) == 2:
+            score += 10**3
+        if window.count(opp_piece) == 5:
+            score -= 0.9*10*5
+        elif window.count(opp_piece) == 4 and window.count(0) == 1:
+            score -= 0.9*10**4
+        elif window.count(opp_piece) == 3 and window.count(0) == 2:
+            score -= 0.9*10**3
+        return score
+    
+    
+    def score_function(self,board, piece):
+        score = 0
+        for r in range(8):
+            row_array = [int(i) for i in list(board.state[r,:])]
+            for c in range(4):
+                window = row_array[c:c+5]
+                score += self.evaluate_window(window, piece)
 
+       	for c in range(8):
+       		col_array = [int(i) for i in list(board.state[:,c])]
+       		for r in range(4):
+       			window = col_array[r:r+5]
+       			score += self.evaluate_window(window, piece)
+       
+       	## Score posiive sloped diagonal
+       	for r in range(4):
+       		for c in range(4):
+       			window = [board.state[r+i][c+i] for i in range(5)]
+       			score += self.evaluate_window(window, piece)
+       
+       	for r in range(4):
+       		for c in range(4):
+       			window = [board.state[r+4-i][c+i] for i in range(5)]
+       			score += self.evaluate_window(window, piece) 
+        
+        return score
+    
+    def rollout_policy_2(self, board,player):
+        "Return the point with best score"
+        current_state = deepcopy(board)
+        player = player
+        location_set = current_state.availables
+        #initialize the best_location variable
+        best_location = random.choice(current_state.availables)
+        score = 0
+        for location in location_set:
+            current_state.move(location, player)
+            if self.score_function(current_state,player)>score:
+                score = self.score_function(current_state,player)
+                best_location = location
+        return best_location
+    
+    
 
     def traverse(self, node):
         '''
