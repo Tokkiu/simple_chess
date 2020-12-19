@@ -1,11 +1,13 @@
 import numpy as np
 import time
 import random
-
+from numba import jit
 from copy import deepcopy
 
 from MCTSNode import MCTSNode
 from Board import Board
+
+M=8
 
 def pprint_tree(node, file=None, _prefix="", _last=True, level = 0, max_depth=1):
     # print(_prefix, "`- " if _last else "|- ", {"Win Num":node.win_times, "Visit Num":node.visited_times,  "Pos":node.position}, sep="", file=file)
@@ -33,7 +35,7 @@ class MCTSAgent(object):
         self.time_limit = 10
         self.temperature = 0.5
 
-    
+
     def choose_position(self, last_player, last_position):
         '''
         Choose a position
@@ -44,7 +46,7 @@ class MCTSAgent(object):
         root = MCTSNode(deepcopy(self.board), last_player, None, last_position)  # root is the current state of board
         position = self.monte_carlo_tree_search(root).position
         return position
-        
+
 
     def monte_carlo_tree_search(self, root):
         '''
@@ -54,7 +56,7 @@ class MCTSAgent(object):
         # When it is within the number of time
         while time.time() - time_mcts < self.time_limit:
 
-            # Step 1: Selection 
+            # Step 1: Selection
             leaf = self.traverse(root)  # leaf is unvisited node
 
             # Step 2: Expansion
@@ -76,11 +78,11 @@ class MCTSAgent(object):
         print('Simulation number: {}'.format(self.simulation_times))
         print('Simulation time: {}'.format(time.time()-time_mcts))
         return root.get_best_child(self.uct)
-    
+
 
     def backpropagate(self, node, result):
         '''
-        Back propagate the result. 
+        Back propagate the result.
         Update win times and visited times
         '''
         while node is not None:
@@ -97,14 +99,15 @@ class MCTSAgent(object):
 
         current_state = deepcopy(node.board)
         player = node.player
-        is_over, winner = current_state.check_game_result()
+        is_over, winner = check_for_done(current_state.state)
 
         while not is_over:
             player = -1*player
-            position = self.rollout_policy_2(current_state,player)
+            position = self.rollout_policy(current_state)
+            #position = self.rollout_policy_2(current_state,player)
             #print(position,type(position))
             current_state.move(position, player)
-            is_over, winner = current_state.check_game_result()
+            is_over, winner = check_for_done(current_state.state)
         return winner
 
 
@@ -121,8 +124,8 @@ class MCTSAgent(object):
         Random positions.
         '''
         return random.choice(board.availables)
-    
-    
+
+
     def evaluate_window(self,window, piece):
         score = 0
         opp_piece = piece * -1
@@ -139,8 +142,8 @@ class MCTSAgent(object):
         elif window.count(opp_piece) == 3 and window.count(0) == 2:
             score -= 0.9*10**3
         return score
-    
-    
+
+
     def score_function(self,board, piece):
         score = 0
         for r in range(8):
@@ -154,20 +157,20 @@ class MCTSAgent(object):
        		for r in range(4):
        			window = col_array[r:r+5]
        			score += self.evaluate_window(window, piece)
-       
+
        	## Score posiive sloped diagonal
        	for r in range(4):
        		for c in range(4):
        			window = [board.state[r+i][c+i] for i in range(5)]
        			score += self.evaluate_window(window, piece)
-       
+
        	for r in range(4):
        		for c in range(4):
        			window = [board.state[r+4-i][c+i] for i in range(5)]
-       			score += self.evaluate_window(window, piece) 
-        
+       			score += self.evaluate_window(window, piece)
+
         return score
-    
+
     def rollout_policy_2(self, board,player):
         "Return the point with best score"
         current_state = deepcopy(board)
@@ -182,14 +185,14 @@ class MCTSAgent(object):
                 score = self.score_function(current_state,player)
                 best_location = location
         return best_location
-    
-    
+
+
 
     def traverse(self, node):
         '''
         Traverse all the nodes and find the node that is not fully expeanded.
 
-        (For the traverse function, to avoid using up too much time or resources, you may start considering only 
+        (For the traverse function, to avoid using up too much time or resources, you may start considering only
         a subset of children (e.g 10 children). Increase this number or by choosing this subset smartly later.)
         '''
         while not self.is_terminal(node):
@@ -205,3 +208,47 @@ class MCTSAgent(object):
         Score function
         '''
         return (node.win_times/node.visited_times) + self.temperature*np.sqrt(np.log(node.parent.visited_times)/node.visited_times)
+
+
+@jit(nopython=True)
+def check_for_done(mat):
+    """
+    please write your own code testing if the game is over. Return a boolean variable done. If one of the players wins
+    or the tie happens, return True. Otherwise return False. Print a message about the result of the game.
+    input:
+        2D matrix representing the state of the game
+    output:
+        none
+    """
+    done = False
+    for i in range(M-4):
+        for j in range(M):
+            temp = np.sum(mat[j,i:i+5])
+            if temp == 5:
+                return (True, 1)
+            elif temp == -5:
+                return (True, -1)
+
+            temp = np.sum(mat[i:i+5,j])
+            if temp == 5:
+                return (True, 1)
+            elif temp == -5:
+                return (True, -1)
+
+            if j+4<M:
+                temp = mat[i,j] + mat[i+1,j+1] + mat[i+2,j+2] + mat[i+3,j+3] + mat[i+4,j+4]
+                if temp == 5:
+                    return (True, 1)
+                elif temp == -5:
+                    return (True, -1)
+            if j+4<M:
+                temp = mat[M-i-1, j] + mat[M-i-2, j + 1] + mat[M-i-3, j + 2] + mat[M-i-4, j + 3] + mat[M-i-5, j + 4]
+                if temp == 5:
+                    return (True, 1)
+                elif temp == -5:
+                    return (True, -1)
+
+    if not (mat == 0).any():
+        return (True, 0)
+
+    return done, None

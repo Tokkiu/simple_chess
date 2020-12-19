@@ -2,6 +2,7 @@ import pygame
 import numpy as np
 import time
 from MCTS import MCTSAgent
+
 from numba import jit
 
 
@@ -60,7 +61,6 @@ def render(screen, mat):
     draw_stone(screen, mat)
     pygame.display.update()
 
-
 @jit(nopython=True)
 def check_for_done(mat):
     """
@@ -76,42 +76,34 @@ def check_for_done(mat):
         for j in range(M):
             temp = np.sum(mat[j,i:i+5])
             if temp == 5:
-                print("win 1")
-                return True
+                return (True, 1)
             elif temp == -5:
-                print("win -1")
-                return True
+                return (True, -1)
 
             temp = np.sum(mat[i:i+5,j])
             if temp == 5:
-                print("win 1")
-                return True
+                return (True, 1)
             elif temp == -5:
-                print("win -1")
-                return True
+                return (True, -1)
 
             if j+4<M:
                 temp = mat[i,j] + mat[i+1,j+1] + mat[i+2,j+2] + mat[i+3,j+3] + mat[i+4,j+4]
                 if temp == 5:
-                    print("win 1")
-                    return True
+                    return (True, 1)
                 elif temp == -5:
-                    print("win -1")
-                    return True
+                    return (True, -1)
             if j+4<M:
                 temp = mat[M-i-1, j] + mat[M-i-2, j + 1] + mat[M-i-3, j + 2] + mat[M-i-4, j + 3] + mat[M-i-5, j + 4]
                 if temp == 5:
-                    print("win 1")
-                    return True
+                    return (True, 1)
                 elif temp == -5:
-                    print("win -1")
-                    return True
+                    return (True, -1)
 
     if not (mat == 0).any():
-        print("tie")
-        return True
+        return (True, 0)
 
-    return done
+    return done, None
+
 
 
 def update_by_pc(mat, row, col):
@@ -139,7 +131,7 @@ def main():
     M = 8
 
     pygame.init()
-    screen = pygame.display.set_mode((640, 640)) 
+    screen = pygame.display.set_mode((640, 640))
     pygame.display.set_caption('Five-in-a-Row')
     done = False
     mat = np.zeros((M, M))
@@ -160,7 +152,10 @@ def main():
                 # check for win or tie
                 # print message if game finished
                 # otherwise contibue
-                if check_for_done(mat):
+
+                print(check_for_done(mat))
+                is_over, winner =check_for_done(mat)
+                if is_over:
                     done = True
                     break
 
@@ -171,9 +166,13 @@ def main():
 
                 mat = update_by_pc(mat, row, col)
                 render(screen, mat)
-                if check_for_done(mat):
+
+                is_over, winner = check_for_done(mat)
+                if is_over:
                     done = True
                     break
+
+    print("Winner is :", winner)
 
     pygame.quit()
 

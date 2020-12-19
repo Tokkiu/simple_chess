@@ -73,7 +73,7 @@ class Board(object):
         Choose the best position in the availables
         '''
         children_list = []
-        
+
         if(len(self.unavailables) < self.n_in_row):
             return children_list
 
