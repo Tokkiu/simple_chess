@@ -258,7 +258,7 @@ def main():
     pygame.mixer.music.play(loops=-1)
     winner=None
     show_go_screen(screen, winner, startground, start_rect)
-    draw_board(screen, background)
+    render(screen, mat, whitestone, blackstone, background)
     while not done:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
