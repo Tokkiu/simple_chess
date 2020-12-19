@@ -79,41 +79,18 @@ class MCTSNode(object):
             next_state = np.copy(self.board.state)
             # move_pos = self.untried_actions.pop(0)
 
-            me = 1
-            nboard = NBoard()
-            nboard.init_board(0)
-            nboard.current_player = 1 if self.player == me else 2
-            for i in range(8):
-                for j in range(8):
-                    c = next_state[i][j]
-                    x, y = 7 - i, j
-                    move = nboard.location_to_move([x, y])
-                    if c != 0:
-                        nboard.availables.remove(move)
-                        if c == me:
-                            nboard.states[move] = 1
-                        else:
-                            nboard.states[move] = 2
-            if self.parent:
-                last_pos = self.parent.position
-                nboard.last_move = nboard.location_to_move([7-last_pos[0], last_pos[1]])
-            max_p, max_m = 0, 0
-            for move, prob in model(nboard)[0]:
-                if prob > max_p:
-                    max_p = prob
-                    max_m = move
+            pos_list, prob_list, score = self.predict_probs(next_state)
 
-            move_pos = nboard.move_to_location(max_m)
-            move_pos[0] = 7-move_pos[0]
+            for pos in pos_list[:self.max_expend_num]:
 
-            # Create board instance and take the move
-            state = Board(next_state, self.board.n_in_row)
-            state.move(move_pos, self.player * -1)
+                # Create board instance and take the move
+                state = Board(np.copy(next_state), self.board.n_in_row)
+                state.move(pos, self.player * -1)
 
-            # Creating the child instance and add it into the children attribute
-            new_child = MCTSNode(state, self.player * -1, self, move_pos)
-            self.children.append(new_child)
-            return new_child
+                # Creating the child instance and add it into the children attribute
+                new_child = MCTSNode(state, self.player * -1, self, pos)
+                self.children.append(new_child)
+            return self.children
         else:
             return None
 
@@ -174,3 +151,34 @@ class MCTSNode(object):
         # remove unavailables in nearest position
         nearest_positions = list(set(nearest_positions) - set(unavailables))
         return nearest_positions
+
+    def predict_probs(self, next_state):
+        me = 1
+        nboard = NBoard()
+        nboard.init_board(0)
+        nboard.current_player = 1 if self.player == me else 2
+        for i in range(8):
+            for j in range(8):
+                c = next_state[i][j]
+                x, y = 7 - i, j
+                move = nboard.location_to_move([x, y])
+                if c != 0:
+                    nboard.availables.remove(move)
+                    if c == me:
+                        nboard.states[move] = 1
+                    else:
+                        nboard.states[move] = 2
+        if self.parent:
+            last_pos = self.parent.position
+            nboard.last_move = nboard.location_to_move([7 - last_pos[0], last_pos[1]])
+
+        moves, probs = [], []
+        predicted, value = model(nboard)
+        for move, prob in predicted:
+            loc = nboard.move_to_location(move)
+            moves.append((7-loc[0], loc[1]))
+            probs.append(prob)
+
+        indexs = list(reversed(np.argsort(probs)))
+        return np.array(moves)[indexs], np.array(probs)[indexs], value
+
