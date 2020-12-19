@@ -2,6 +2,9 @@ import pygame
 import numpy as np
 import time
 from MCTS import MCTSAgent
+from numba import jit
+@jit(nopython=True)
+
 
 def draw_board(screen):
     """
