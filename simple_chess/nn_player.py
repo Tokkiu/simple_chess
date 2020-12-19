@@ -1,7 +1,6 @@
 from __future__ import print_function
 import numpy as np
 import pickle
-from mst import MCTSPlayer
 from nn_tools import *
 
 
@@ -211,14 +210,6 @@ def load_model(model_path: str = './model/best_policy_8_8_5.model'):
     width, height = 8, 8
     best_policy = PolicyValueNetNumpy(width, height, policy_param)
     return best_policy.policy_value_fn
-
-def build_nn_player():
-    best_policy = load_model()
-    mcts_player = MCTSPlayer(best_policy,
-                             c_puct=5,
-                             n_playout=400)  # set larger n_playout for better performance
-
-    return mcts_player
 
 
 if __name__ == '__main__':

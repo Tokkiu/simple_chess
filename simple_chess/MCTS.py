@@ -10,8 +10,8 @@ from Board import Board
 M=8
 
 def pprint_tree(node, file=None, _prefix="", _last=True, level = 0, max_depth=1):
-    # print(_prefix, "`- " if _last else "|- ", {"Win Num":node.win_times, "Visit Num":node.visited_times,  "Pos":node.position}, sep="", file=file)
     _prefix += "   " if _last else "|  "
+    print(_prefix, "`- " if _last else "|- ", {"Win Num":node.win_times, "Visit Num":node.visited_times,  "Pos":node.position}, sep="", file=file)
     child_count = len(node.children)
     if level >= max_depth:
         return
@@ -54,7 +54,7 @@ class MCTSAgent(object):
         '''
         time_mcts = time.time()
         # When it is within the number of time
-        trys = 300
+        trys = 100
         while trys > 0:
             trys -= 1
 
