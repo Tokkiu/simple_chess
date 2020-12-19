@@ -61,16 +61,18 @@ class MCTSAgent(object):
             # Step 1: Selection
             leaf = self.traverse(root)  # leaf is unvisited node
 
+            children = None
             # Step 2: Expansion
             if not self.is_terminal(leaf):
                 children = leaf.expand_child()
 
-            for leaf_child in children:
-                # Step 3: Roll out
-                simulation_result = self.rollout(leaf_child)
+            if children:
+                for leaf_child in children:
+                    # Step 3: Roll out
+                    simulation_result = self.rollout(leaf_child)
 
-                # Step 4: Backpropagateion
-                self.backpropagate(leaf_child, simulation_result)
+                    # Step 4: Backpropagateion
+                    self.backpropagate(leaf_child, simulation_result)
 
 
         # Gettin the total simulation count
