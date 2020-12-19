@@ -54,7 +54,7 @@ class MCTSAgent(object):
         '''
         time_mcts = time.time()
         # When it is within the number of time
-        trys = 100
+        trys = 300
         while trys > 0:
             trys -= 1
 

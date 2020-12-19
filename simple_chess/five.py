@@ -78,6 +78,7 @@ def render(screen, mat,whitestone,blackstone,background):
 
 
 @jit(nopython=True)
+
 def check_for_done(mat):
     """
     please write your own code testing if the game is over. Return a boolean variable done. If one of the players wins
@@ -85,40 +86,58 @@ def check_for_done(mat):
     input:
         2D matrix representing the state of the game
     output:
-        none
+        (done=bool,winner=1 for black -1 for white and 0 for tie,None for continue)
     """
     done = False
     for i in range(M-4):
         for j in range(M):
             temp = np.sum(mat[j,i:i+5])
             if temp == 5:
-                return (True, 1)
+                print("win 1")
+                winner=1
+                return True,winner
             elif temp == -5:
-                return (True, -1)
+                print("win -1")
+                winner=-1
+                return True,winner
 
             temp = np.sum(mat[i:i+5,j])
             if temp == 5:
-                return (True, 1)
+                print("win 1")
+                winner=1
+                return True,winner
             elif temp == -5:
-                return (True, -1)
+                print("win -1")
+                winner=-1
+                return True,winner
 
             if j+4<M:
                 temp = mat[i,j] + mat[i+1,j+1] + mat[i+2,j+2] + mat[i+3,j+3] + mat[i+4,j+4]
                 if temp == 5:
-                    return (True, 1)
+                    print("win 1")
+                    winner=1
+                    return True,winner
                 elif temp == -5:
-                    return (True, -1)
+                    print("win -1")
+                    winner=-1
+                    return True,winner
             if j+4<M:
                 temp = mat[M-i-1, j] + mat[M-i-2, j + 1] + mat[M-i-3, j + 2] + mat[M-i-4, j + 3] + mat[M-i-5, j + 4]
                 if temp == 5:
-                    return (True, 1)
+                    print("win 1")
+                    winner=1
+                    return True,winner
                 elif temp == -5:
-                    return (True, -1)
+                    print("win -1")
+                    winner=-1
+                    return True,winner
 
     if not (mat == 0).any():
-        return (True, 0)
+        print("tie")
+        winner=0
+        return True,winner
 
-    return done, None
+    return done,None
 
 
 
@@ -258,6 +277,8 @@ def main():
                 winner=check[1]
                 if check[0]:
                     done=True
+                    break
+
 
                 # get the next move from computer/MCTS
                 # check for win or tie
@@ -270,6 +291,7 @@ def main():
                 winner=check[1]
                 if check[0]:
                     done=True
+
     show_end_screen(screen, winner)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
