@@ -216,7 +216,7 @@ def draw_text(surf, text, size, x, y, color=WHITE):
 
 def main():
     global M
-    M = 8
+    M = 4
     #px
     WIDTH =640
     HEIGHT=640

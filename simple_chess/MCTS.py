@@ -8,10 +8,11 @@ from MCTSNode import MCTSNode
 from Board import Board
 
 M=8
+print('size is: % d * % d ' % (M, M))
 
 def pprint_tree(node, file=None, _prefix="", _last=True, level = 0, max_depth=1):
     _prefix += "   " if _last else "|  "
-    print(_prefix, "`- " if _last else "|- ", {"Win Num":node.win_times, "Visit Num":node.visited_times,  "Pos":node.position}, sep="", file=file)
+    print(_prefix, "`- " if _last else "|- ", {"Win Num":node.win_times, "Visit Num":node.visited_times,  "Pos":node.position, "Uct":uct(node)}, sep="", file=file)
     child_count = len(node.children)
     if level >= max_depth:
         return
@@ -210,6 +211,13 @@ class MCTSAgent(object):
         Score function
         '''
         return (node.win_times/node.visited_times) + self.temperature*np.sqrt(np.log(node.parent.visited_times)/node.visited_times)
+
+
+def uct(node):
+    if node.parent:
+        return (node.win_times/node.visited_times) + .5*np.sqrt(np.log(node.parent.visited_times)/node.visited_times)
+    else:
+        return 0
 
 
 @jit(nopython=True)

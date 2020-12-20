@@ -77,21 +77,28 @@ class MCTSNode(object):
         '''
         if len(self.children) < self.max_expend_num:
             next_state = np.copy(self.board.state)
-            # move_pos = self.untried_actions.pop(0)
 
-            pos_list, prob_list, score = self.predict_probs(next_state)
-            children = [tuple(child.position) for child in self.children]
-            for pos in pos_list[:self.max_expend_num]:
+            # pos_list, prob_list, score = self.predict_probs(next_state)
+            # children = [tuple(child.position) for child in self.children]
+            # for pos in pos_list[:self.max_expend_num]:
+            #
+            #     # Creating the child instance and add it into the children attribute
+            #     if tuple(pos) not in children:
+            #         # Create board instance and take the move
+            #         state = Board(np.copy(next_state), self.board.n_in_row)
+            #         state.move(pos, self.player * -1)
+            #         new_child = MCTSNode(state, self.player * -1, self, pos)
+            #
+            #         self.children.append(new_child)
+            #         return new_child
 
-                # Creating the child instance and add it into the children attribute
-                if tuple(pos) not in children:
-                    # Create board instance and take the move
-                    state = Board(np.copy(next_state), self.board.n_in_row)
-                    state.move(pos, self.player * -1)
-                    new_child = MCTSNode(state, self.player * -1, self, pos)
+            pos = self.untried_actions.pop(0)
+            state = Board(np.copy(next_state), self.board.n_in_row)
+            state.move(pos, self.player * -1)
+            new_child = MCTSNode(state, self.player * -1, self, pos)
 
-                    self.children.append(new_child)
-                    return new_child
+            self.children.append(new_child)
+            return new_child
 
         return None
 
@@ -112,10 +119,10 @@ class MCTSNode(object):
         unavailables_num = len(self.board.unavailables)
         s_len = int((1/2)*(unavailables_num/2)+7/2)
         # print(s_len)
-        if s_len >= 8:
+        if s_len >= 4:
             # Small board size equal to the original board size
             return []
-        boundary_gap = int((8-s_len)/2)
+        boundary_gap = int((4-s_len)/2)
         small_board_position = [(boundary_gap+i, boundary_gap+j) for i in range(s_len) for j in range(s_len) \
             if self.board.state[boundary_gap+i][boundary_gap+j] == 0]
         sb_len = len(small_board_position)
