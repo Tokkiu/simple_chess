@@ -3,7 +3,6 @@ from __future__ import print_function
 import numpy as np
 
 
-# some utility functions
 def softmax(x):
     probs = np.exp(x - np.max(x))
     probs /= np.sum(probs)
@@ -17,8 +16,6 @@ def relu(X):
 
 def conv_forward(X, W, b, stride=1, padding=1):
     n_filters, d_filter, h_filter, w_filter = W.shape
-    # theano conv2d flips the filters (rotate 180 degree) first
-    # while doing the calculation
     W = W[:, :, ::-1, ::-1]
     n_x, d_x, h_x, w_x = X.shape
     h_out = (h_x - h_filter + 2 * padding) / stride + 1
@@ -40,7 +37,6 @@ def fc_forward(X, W, b):
 
 def get_im2col_indices(x_shape, field_height,
                        field_width, padding=1, stride=1):
-    # First figure out what the size of the output should be
     N, C, H, W = x_shape
     assert (H + 2 * padding - field_height) % stride == 0
     assert (W + 2 * padding - field_height) % stride == 0
@@ -61,8 +57,6 @@ def get_im2col_indices(x_shape, field_height,
 
 
 def im2col_indices(x, field_height, field_width, padding=1, stride=1):
-    """ An implementation of im2col based on some fancy indexing """
-    # Zero-pad the input
     p = padding
     x_padded = np.pad(x, ((0, 0), (0, 0), (p, p), (p, p)), mode='constant')
 

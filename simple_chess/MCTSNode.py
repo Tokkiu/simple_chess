@@ -3,10 +3,7 @@ from copy import deepcopy
 import numpy as np
 from Board import Board
 
-from nn_player import load_model
-from nn_player import Board as NBoard
-
-model = load_model('../model/best_policy_8_8_5.model')
+from nn_player import prefict_probs
 
 class MCTSNode(object):
     '''
@@ -62,7 +59,7 @@ class MCTSNode(object):
         if len(self.children) < self.max_expend_num:
             next_state = np.copy(self.board.state)
 
-            pos_list, prob_list, score = self.predict_probs(next_state)
+            pos_list, prob_list, score = self.get_probs(next_state)
             children = [tuple(child.position) for child in self.children]
             for pos in pos_list[:self.max_expend_num]:
 
@@ -88,7 +85,7 @@ class MCTSNode(object):
 
 
 
-    def predict_probs(self, next_state):
+    def get_probs(self, next_state):
         me = 1
         current_player = 1 if self.player == me else 2
 
@@ -97,20 +94,7 @@ class MCTSNode(object):
             last_pos = self.parent.position
             last_move = move_to_state(7 - last_pos[0], last_pos[1])
 
-        moves, probs = [], []
-        predicted, value = model(next_state, current_player, last_move)
-        for move, prob in predicted:
-            loc = state_to_move(move)
-            moves.append((7-loc[0], loc[1]))
-            probs.append(prob)
-
-        indexs = list(reversed(np.argsort(probs)))
-        return np.array(moves)[indexs], np.array(probs)[indexs], value
-
-def state_to_move(state=0, width=8):
-    h = state // width
-    w = state % width
-    return h, w
+        return prefict_probs(next_state, current_player, last_move)
 
 
 def move_to_state(x=0, y=0, width=8):
@@ -125,4 +109,3 @@ def move_to_state(x=0, y=0, width=8):
     '''
 
     return x * width + y
-
