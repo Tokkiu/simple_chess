@@ -78,27 +78,27 @@ class MCTSNode(object):
         if len(self.children) < self.max_expend_num:
             next_state = np.copy(self.board.state)
 
-            # pos_list, prob_list, score = self.predict_probs(next_state)
-            # children = [tuple(child.position) for child in self.children]
-            # for pos in pos_list[:self.max_expend_num]:
-            #
-            #     # Creating the child instance and add it into the children attribute
-            #     if tuple(pos) not in children:
-            #         # Create board instance and take the move
-            #         state = Board(np.copy(next_state), self.board.n_in_row)
-            #         state.move(pos, self.player * -1)
-            #         new_child = MCTSNode(state, self.player * -1, self, pos)
-            #
-            #         self.children.append(new_child)
-            #         return new_child
+            pos_list, prob_list, score = self.predict_probs(next_state)
+            children = [tuple(child.position) for child in self.children]
+            for pos in pos_list[:self.max_expend_num]:
 
-            pos = self.untried_actions.pop(0)
-            state = Board(np.copy(next_state), self.board.n_in_row)
-            state.move(pos, self.player * -1)
-            new_child = MCTSNode(state, self.player * -1, self, pos)
+                # Creating the child instance and add it into the children attribute
+                if tuple(pos) not in children:
+                    # Create board instance and take the move
+                    state = Board(np.copy(next_state), self.board.n_in_row)
+                    state.move(pos, self.player * -1)
+                    new_child = MCTSNode(state, self.player * -1, self, pos)
 
-            self.children.append(new_child)
-            return new_child
+                    self.children.append(new_child)
+                    return new_child
+
+            # pos = self.untried_actions.pop(0)
+            # state = Board(np.copy(next_state), self.board.n_in_row)
+            # state.move(pos, self.player * -1)
+            # new_child = MCTSNode(state, self.player * -1, self, pos)
+            #
+            # self.children.append(new_child)
+            # return new_child
 
         return None
 
