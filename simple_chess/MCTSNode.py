@@ -154,31 +154,39 @@ class MCTSNode(object):
 
     def predict_probs(self, next_state):
         me = 1
-        nboard = NBoard()
-        nboard.init_board(0)
-        nboard.current_player = 1 if self.player == me else 2
-        for i in range(8):
-            for j in range(8):
-                c = next_state[i][j]
-                x, y = 7 - i, j
-                move = nboard.location_to_move([x, y])
-                if c != 0:
-                    nboard.availables.remove(move)
-                    if c == me:
-                        nboard.states[move] = 1
-                    else:
-                        nboard.states[move] = 2
+        current_player = 1 if self.player == me else 2
+
+        last_move = -1
         if self.parent:
             last_pos = self.parent.position
-            nboard.last_move = nboard.location_to_move([7 - last_pos[0], last_pos[1]])
+            last_move = move_to_state(7 - last_pos[0], last_pos[1])
 
         moves, probs = [], []
-        predicted, value = model(nboard)
+        predicted, value = model(next_state, current_player, last_move)
         for move, prob in predicted:
-            loc = nboard.move_to_location(move)
+            loc = state_to_move(move)
             moves.append((7-loc[0], loc[1]))
             probs.append(prob)
 
         indexs = list(reversed(np.argsort(probs)))
         return np.array(moves)[indexs], np.array(probs)[indexs], value
+
+def state_to_move(state=0, width=8):
+    h = state // width
+    w = state % width
+    return h, w
+
+
+def move_to_state(x=0, y=0, width=8):
+    '''
+    For a 8x8 board game, start from 0,0 to 7,7
+    7,0 ~ ~ ~ ~ 7,7
+    ~ ~ ~ ~ ~ ~ ~
+    0,0 ~ ~ ~ ~ 0,7
+    :param x:
+    :param y:
+    :return: compressed state
+    '''
+
+    return x * width + y
 

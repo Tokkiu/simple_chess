@@ -134,16 +134,27 @@ class PolicyValueNetNumpy:
         self.board_height = board_height
         self.params = net_params
 
-    def policy_value_fn(self, board):
+    def policy_value_fn(self, board, current_player, last_move):
         """
         input: board
         output: a list of (action, probability) tuples for each available
         action and the score of the board state
         """
-        legal_positions = board.availables
-        current_state = board.current_state()
+        legal_positions, moves, players = [], [], []
 
-        X = current_state.reshape(-1, 4, self.board_width, self.board_height)
+        for i in range(len(board)):
+            for j in range(len(board)):
+                state = move_to_state(7-i, j)
+                er = board[i][j]
+                if er == 0:
+                    legal_positions.append(state)
+                else:
+                    moves.append(state)
+                    players.append(1 if er == 1 else 2)
+
+        current_state = self.current_state_collection(moves, players, current_player, last_move)
+
+        X = current_state.reshape(-1, 4, 8, 8)
         # first 3 conv layers with ReLu nonlinearity
         for i in [0, 2, 4]:
             X = relu(conv_forward(X, self.params[i], self.params[i + 1]))
@@ -159,30 +170,68 @@ class PolicyValueNetNumpy:
         act_probs = zip(legal_positions, act_probs.flatten()[legal_positions])
         return act_probs, value
 
+    def current_state_collection(self, moves, players, current_player, last_move):
+        """return the board state from the perspective of the current player.
+        state shape: 4*width*height
+        """
+        moves = np.array(moves)
+        players = np.array(players)
+        square_state = np.zeros((4, 8, 8))
+        if len(moves) != 0:
+            move_curr = moves[players == current_player]
+            move_oppo = moves[players != current_player]
+            square_state[0][move_curr // self.board_width,
+                            move_curr % self.board_height] = 1.0
+            square_state[1][move_oppo // self.board_width,
+                            move_oppo % self.board_height] = 1.0
+            # indicate the last move location
+            square_state[2][last_move // self.board_width,
+                            last_move % self.board_height] = 1.0
+        if len(moves) % 2 == 0:
+            square_state[3][:, :] = 1.0  # indicate the colour to play
+        return square_state[:, ::-1, :]
 
-def graphic(board, player1=1, player2=2):
-    """Draw the board and show game info"""
-    width = board.width
-    height = board.height
 
-    print("Player", player1, "with X".rjust(3))
-    print("Player", player2, "with O".rjust(3))
-    print()
-    for x in range(width):
-        print("{0:8}".format(x), end='')
-    print('\r\n')
-    for i in range(height - 1, -1, -1):
-        print("{0:4d}".format(i), end='')
-        for j in range(width):
-            loc = i * width + j
-            p = board.states.get(loc, -1)
-            if p == player1:
-                print('X'.center(8), end='')
-            elif p == player2:
-                print('O'.center(8), end='')
-            else:
-                print('_'.center(8), end='')
-        print('\r\n\r\n')
+
+
+class Game(object):
+
+    def __init__(self, board, **kwargs):
+        self.board = board
+
+    def start_self_play(self, player, is_shown=0, temp=1e-3):
+        """ start a self-play game using a MCTS player, reuse the search tree,
+        and store the self-play data: (state, mcts_probs, z) for training
+        """
+        self.board.init_board()
+        p1, p2 = self.board.players
+        states, mcts_probs, current_players = [], [], []
+        while True:
+            move, move_probs = player.get_action(self.board,
+                                                 temp=temp,
+                                                 return_prob=1)
+            # store the data
+            states.append(self.board.current_state())
+            mcts_probs.append(move_probs)
+            current_players.append(self.board.current_player)
+            # perform a move
+            self.board.do_move(move)
+            end, winner = self.board.game_end()
+            if end:
+                # winner from the perspective of the current player of each state
+                winners_z = np.zeros(len(current_players))
+                if winner != -1:
+                    winners_z[np.array(current_players) == winner] = 1.0
+                    winners_z[np.array(current_players) != winner] = -1.0
+                # reset MCTS root node
+                player.reset_player()
+                if is_shown:
+                    if winner != -1:
+                        print("Game end. Winner is player:", winner)
+                    else:
+                        print("Game end. Tie")
+                return winner, zip(states, mcts_probs, winners_z)
+
 
 
 def move_to_state(x=0, y=0, width=8):
@@ -224,7 +273,6 @@ if __name__ == '__main__':
     board.do_move(move_to_state(5, 6))
     board.do_move(move_to_state(1, 0))
     board.do_move(move_to_state(2, 1))
-    graphic(board)
 
     for action, prob in model(board)[0]:
         print(action, prob)
@@ -236,4 +284,3 @@ if __name__ == '__main__':
 
     # graphic current board
     board.do_move(action)
-    graphic(board)
