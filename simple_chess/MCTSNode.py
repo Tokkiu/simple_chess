@@ -32,22 +32,6 @@ class MCTSNode(object):
         self._untried_actions = None
         self._untried_far_actions = []
 
-    # Should be replaced by NN
-    @property
-    def untried_actions(self):
-        if self._untried_actions is None:
-            # pattern_children = list((set(self.board.unavailables)|set(self.find_naive_pattern()))-set(self.board.unavailables))
-            pattern_children = self.find_naive_pattern()
-            nearest_children = list(set(self.find_nearest_position_first()) - set(pattern_children))
-            small_board_children = list(set(self.small_board_strategy())-set(pattern_children)-set(nearest_children))
-            available_children = list(set(deepcopy(self.board.availables)) - set(pattern_children) - set(nearest_children) \
-                -set(small_board_children))
-            self._untried_actions = pattern_children + nearest_children + small_board_children + available_children
-            # available_children = deepcopy(self.board.availables)
-            # self._untried_actions = available_children
-
-        return self._untried_actions
-
 
     def fully_expanded(self):
         '''
@@ -103,15 +87,6 @@ class MCTSNode(object):
         return None
 
 
-    def find_naive_pattern(self):
-        '''
-        Find the pattern in this state
-        Choose the best position in the availables
-        '''
-        children_list = self.board.find_position_by_pattern()
-        return children_list
-
-
     def small_board_strategy(self):
         '''
         Randomly select the center position
@@ -129,36 +104,6 @@ class MCTSNode(object):
         return random.sample(small_board_position, int(sb_len/2))
 
 
-    def find_nearest_position_first(self):
-        '''
-        The method find nearest position sets
-        '''
-
-        nearest_positions = set() # create a set
-        h, w = self.board.state.shape[0], self.board.state.shape[1]
-        unavailables = self.board.unavailables
-        for i, j in unavailables:
-            # up down right left
-            if i < h - 1:
-                nearest_positions.add((i+1, j))
-            if i > 0:
-                nearest_positions.add((i-1, j))
-            if j < w - 1:
-                nearest_positions.add((i, j+1))
-            if j > 0:
-                nearest_positions.add((i, j-1))
-            # diag
-            if i < h - 1 and j < w - 1:
-                nearest_positions.add((i+1, j+1))
-            if i > 0 and j < w -1:
-                nearest_positions.add((i-1, j+1))
-            if i < h -1 and j > 0:
-                nearest_positions.add((i+1, j-1))
-            if i > 0 and j > 0:
-                nearest_positions.add((i-1, j-1))
-        # remove unavailables in nearest position
-        nearest_positions = list(set(nearest_positions) - set(unavailables))
-        return nearest_positions
 
     def predict_probs(self, next_state):
         me = 1
