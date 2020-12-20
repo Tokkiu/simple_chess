@@ -87,23 +87,6 @@ class MCTSNode(object):
         return None
 
 
-    def small_board_strategy(self):
-        '''
-        Randomly select the center position
-        '''
-        unavailables_num = len(self.board.unavailables)
-        s_len = int((1/2)*(unavailables_num/2)+7/2)
-        # print(s_len)
-        if s_len >= 4:
-            # Small board size equal to the original board size
-            return []
-        boundary_gap = int((4-s_len)/2)
-        small_board_position = [(boundary_gap+i, boundary_gap+j) for i in range(s_len) for j in range(s_len) \
-            if self.board.state[boundary_gap+i][boundary_gap+j] == 0]
-        sb_len = len(small_board_position)
-        return random.sample(small_board_position, int(sb_len/2))
-
-
 
     def predict_probs(self, next_state):
         me = 1
