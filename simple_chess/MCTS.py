@@ -33,7 +33,7 @@ class MCTSAgent(object):
 
         self.simulation_times = 0 # the times of simulation
         self.begin_time = time.time() # start the MCTS time
-        self.time_limit = 9
+        self.time_limit = 6
         self.temperature = 0.5
 
 
