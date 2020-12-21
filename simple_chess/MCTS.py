@@ -55,9 +55,10 @@ class MCTSAgent(object):
         '''
         time_mcts = time.time()
         # When it is within the number of time
-        trys = 500
-        while trys > 0:
-            trys -= 1
+        while time.time() - time_mcts < self.time_limit:
+#         trys = 500
+#         while trys > 0:
+#             trys -= 1
 
             # Step 1: Selection
             leaf = self.traverse(root)  # leaf is unvisited node
