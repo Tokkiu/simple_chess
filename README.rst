@@ -41,6 +41,8 @@ TODO
 Install
 -------
 
+Download the whold file and go into the simple_chess folder, then use following command in the terminal.
+
 ::
 
    pip install simple_chess
